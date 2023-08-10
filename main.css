@@ -306,3 +306,42 @@ body {
         transform: translateY(0);
     }
 }
+.online-members {
+    background-color: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 5px;
+    max-height: calc(100vh - 120px); /* Ajuster la hauteur en conséquence */
+    overflow-y: auto;
+    position: fixed;
+    left: 20px;
+    top: 70px;
+    z-index: 10;
+}
+
+.online-members h3 {
+    color: white;
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.users-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.user {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.user img {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.user img, .user span {
+    color: white;
+}

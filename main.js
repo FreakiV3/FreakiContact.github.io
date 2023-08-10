@@ -50,6 +50,23 @@ function playErrorSound() {
 
 function addUserToList(username, logoUrl) {
     users.push({ username, logoUrl });
+    updateUsersList();
+}
+
+function removeUserFromList(username) {
+    users = users.filter(user => user.username !== username);
+    updateUsersList();
+}
+
+function updateUsersList() {
+    const usersList = document.getElementById("usersList");
+    usersList.innerHTML = "";
+    users.forEach(user => {
+        const userDiv = document.createElement("div");
+        userDiv.classList.add("user");
+        userDiv.innerHTML = `<img src="${user.logoUrl}" alt="${user.username}">${user.username}`;
+        usersList.appendChild(userDiv);
+    });
 }
 
 function updateUserLogo(username, newLogoUrl) {
@@ -166,6 +183,7 @@ function sendSiteMessage(username, content) {
     const msg = {
         content: content,
         username: username,
+        avatar_url: logoUrl, // Ajoutez cette ligne pour spécifier l'URL de la photo de profil
     };
 
     fetch(whurl + "?wait=true", {
@@ -173,4 +191,15 @@ function sendSiteMessage(username, content) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(msg),
     });
+}
+function addUserToList(username, logoUrl) {
+    users.push({ username, logoUrl });
+}
+
+function updateUserLogo(username, newLogoUrl) {
+    const user = users.find(user => user.username === username);
+    if (user) {
+        user.logoUrl = newLogoUrl;
+        updateUsersList();
+    }
 }
