@@ -30,6 +30,10 @@
                     <button onclick="startChat()">Continuer</button>
                 </div>
                 <div id="chatContainer" class="chat-container">
+                    <div class="online-members">
+                        <h3>Online Members</h3>
+                        <div id="usersList" class="users-list"></div>
+                    </div>
                     <div id="chatBox" class="chat-box"></div>
                     <div class="message-input">
                         <input type="text" id="messageInput" placeholder="Type a message...">
@@ -37,10 +41,6 @@
                         <button class="theme-button" onclick="toggleEmotPanel()">
                             <img src="IconButton/EmotButton.png" alt="Emot">
                         </button>
-                    </div>
-                    <div class="online-members">
-                        <h3>Online Members</h3>
-                        <div id="usersList" class="users-list"></div>
                     </div>
                 </div>
             </div>
@@ -58,6 +58,8 @@
             <img src="BackgroundList/Background3.png" alt="Background 3" onclick="changeBackground('BackgroundList/Background3.png')">
         </div>
     </div>
+    <script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-app.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/8.6.1/firebase-database.js"></script>
     <script src="main.js"></script>
 </body>
 </html>

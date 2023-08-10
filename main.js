@@ -1,3 +1,16 @@
+const firebaseConfig = {
+  apiKey: "AIzaSyDJG_SyLEOFJLQVWaKbOKy-on3axEiRwZo",
+  authDomain: "utopian-spring-378808.firebaseapp.com",
+  databaseURL: "https://utopian-spring-378808-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "utopian-spring-378808",
+  storageBucket: "utopian-spring-378808.appspot.com",
+  messagingSenderId: "8495813117",
+  appId: "1:8495813117:web:9dc5b7c89fd23996128994"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
+
 var whurl = "https://discord.com/api/webhooks/1139166261134241824/cXJOTyO_HZ83msBSQJaYEfl8Mbp6S0n4QHb508Ymps975xjLougR709H515HnsH_bOHG"; // Remplacez par l'URL de votre WebHook Discord
 var pseudo = "";
 var logoUrl = "";
@@ -201,5 +214,40 @@ function updateUserLogo(username, newLogoUrl) {
     if (user) {
         user.logoUrl = newLogoUrl;
         updateUsersList();
+    }
+}
+
+function startChat() {
+    pseudo = document.getElementById("pseudoInput").value;
+    logoUrl = document.getElementById("logoUrlInput").value;
+
+    if (pseudo.trim() !== "") {
+        database.ref("users/" + pseudo).set({
+            logoUrl: logoUrl,
+            online: true
+        });
+
+        document.getElementById("loginContainer").style.display = "none";
+        document.getElementById("chatContainer").style.display = "block";
+
+        database.ref("users").on("value", (snapshot) => {
+            const usersData = snapshot.val();
+            users = Object.keys(usersData).map(username => {
+                return {
+                    username: username,
+                    logoUrl: usersData[username].logoUrl,
+                    online: usersData[username].online
+                };
+            });
+            updateUsersList();
+        });
+
+        window.addEventListener("beforeunload", () => {
+            if (pseudo !== "") {
+                database.ref("users/" + pseudo).update({
+                    online: false
+                });
+            }
+        });
     }
 }
