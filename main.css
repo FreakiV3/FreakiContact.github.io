@@ -384,3 +384,17 @@ body {
     color: white;
     font-weight: bold;
 }
+.logout-button {
+    background-color: #ff4136;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-left: auto;
+}
+
+.logout-button:hover {
+    background-color: #e63b32;
+}

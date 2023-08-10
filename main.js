@@ -9,7 +9,9 @@ const firebaseConfig = {
 };
 
 firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
 const database = firebase.database();
+
 
 var whurl = "https://discord.com/api/webhooks/1139166261134241824/cXJOTyO_HZ83msBSQJaYEfl8Mbp6S0n4QHb508Ymps975xjLougR709H515HnsH_bOHG"; // Remplacez par l'URL de votre WebHook Discord
 var pseudo = "";
@@ -42,11 +44,10 @@ function startChat() {
         addUserToList(pseudo, logoUrl);
         updateUsersList();
 
-        // Ajoutez ceci pour enlever l'utilisateur lorsqu'il quitte la page
-        window.addEventListener("beforeunload", removeUserOnUnload);
+        const userRef = database.ref("users/" + pseudo);
+        userRef.set({ logoUrl });
     }
 }
-
 
 function receiveMessage(username, content) {
     const chatBox = document.getElementById("chatBox");
@@ -55,6 +56,7 @@ function receiveMessage(username, content) {
     messageDiv.innerHTML = `<span class="username">${username}:</span> ${content}`;
     chatBox.appendChild(messageDiv);
 
+    updateUserActivity(username); // Mettre à jour l'activité de l'utilisateur
     playMessageSound(); // Jouer le son de notification
 }
 
@@ -211,7 +213,7 @@ function sendSiteMessage(username, content) {
     });
 }
 function addUserToList(username, logoUrl) {
-    users.push({ username, logoUrl });
+    users.push({ username, logoUrl, lastActive: Date.now() });
 }
 
 function updateUserLogo(username, newLogoUrl) {
@@ -246,15 +248,40 @@ document.addEventListener("DOMContentLoaded", () => {
         updateUserLogo(username, newLogoUrl);
     });
 });
-
-function removeUserOnUnload() {
-    if (pseudo !== "") {
-        const userIndex = users.findIndex(user => user.username === pseudo);
-        if (userIndex !== -1) {
-            users.splice(userIndex, 1);
-            updateUsersList();
-        }
+function logout() {
+    firebase.auth().signOut()
+        .then(() => {
+            // Déconnexion réussie
+            const userIndex = users.findIndex(user => user.username === pseudo);
+            if (userIndex !== -1) {
+                users.splice(userIndex, 1);
+                updateUsersList();
+                // Supprime l'utilisateur de la base de données Firebase
+                const currentUserRef = database.ref("users/" + pseudo);
+                currentUserRef.remove();
+            }
+            // Affiche l'écran de connexion à nouveau
+            document.getElementById("loginContainer").style.display = "block";
+            document.getElementById("chatContainer").style.display = "none";
+        })
+        .catch(error => {
+            console.error("Erreur lors de la déconnexion :", error);
+        });
+}
+function updateUserActivity(username) {
+    const user = users.find(user => user.username === username);
+    if (user) {
+        user.lastActive = Date.now();
     }
 }
 
-window.addEventListener("beforeunload", removeUserOnUnload);
+function removeInactiveUsers() {
+    const currentTime = Date.now();
+    const inactiveUsers = users.filter(user => (currentTime - user.lastActive) > 600000); // 600000 ms = 10 minutes
+
+    if (inactiveUsers.length > 0) {
+        users = users.filter(user => !inactiveUsers.includes(user));
+        updateUsersList();
+    }
+}
+setInterval(removeInactiveUsers, 600000);
