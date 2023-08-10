@@ -82,6 +82,13 @@ function receiveMessage(username, content) {
 
     // Faire défiler vers le bas de la boîte de chat
     chatBox.scrollTop = chatBox.scrollHeight;
+	updateChatScroll();
+	removeExcessMessages();
+}
+
+function updateChatScroll() {
+    const chatBox = document.getElementById("chatBox");
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 function playMessageSound() {
@@ -132,8 +139,47 @@ function updateUsersList() {
     });
 }
 
+function receiveMessage(username, content) {
+    const chatBox = document.getElementById("chatBox");
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add("message");
+
+    if (username === pseudo) {
+        messageDiv.classList.add("sent");
+        messageDiv.innerHTML = `<span class="username">${username}:</span> ${replaceEmotCodesWithImages(content)}`;
+    } else {
+        messageDiv.classList.add("received");
+        messageDiv.innerHTML = `<span class="username">${username}:</span> ${replaceEmotCodesWithImages(content)}`;
+    }
+
+    chatBox.appendChild(messageDiv);
+
+    updateUserActivity(username);
+    playMessageSound();
+
+    // Faire défiler vers le bas de la boîte de chat
+    chatBox.scrollTop = chatBox.scrollHeight;
+	updateChatScroll();
+	removeExcessMessages();
+}
 function sendMessage() {
     const content = document.getElementById("messageInput").value;
+    
+    // Vérifier si le message est une commande /warn
+    if (content.startsWith("/warn")) {
+        const commandParts = content.split(" ");
+        if (commandParts.length === 2) {
+            const command = commandParts[0].toLowerCase();
+            const targetUsername = commandParts[1];
+            
+            if (command === "/warn") {
+                warnUser(targetUsername);
+                document.getElementById("messageInput").value = "";
+                return; // Ne pas envoyer le message dans le chat
+            }
+        }
+    }
+
     if (content.trim() !== "") {
         const currentTime = new Date().getTime();
         if (currentTime - lastMessageTime >= spamInterval) {
@@ -149,6 +195,8 @@ function sendMessage() {
         }
     }
 }
+
+
 
 function toggleEmotPanel() {
     const emotPanel = document.getElementById("emotPanel");
@@ -359,6 +407,30 @@ function replaceEmotCodesWithImages(content) {
     });
 
     return replacedContent;
+}
+function removeExcessMessages() {
+    const chatBox = document.getElementById("chatBox");
+    const messages = chatBox.getElementsByClassName("message");
+    
+    if (messages.length > 30) {
+        const messagesToRemove = messages.length - 30;
+        for (let i = 0; i < messagesToRemove; i++) {
+            chatBox.removeChild(messages[i]);
+        }
+    }
+}
+function warnUser(username) {
+    const warnMessage = `Attention! L'utilisateur ${username} a été averti.`;
+    
+    const warnPayload = {
+        content: warnMessage,
+    };
+    
+    fetch(whurl, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(warnPayload),
+    });
 }
 
 // Appeler la fonction pour supprimer les anciens messages toutes les heures

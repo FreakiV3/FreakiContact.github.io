@@ -411,3 +411,7 @@ body {
     width: 30px; /* Largeur souhaitée */
     height: 30px; /* Hauteur souhaitée */
 }
+.message.warning {
+    background-color: #ffc107;
+    font-weight: bold;
+}
