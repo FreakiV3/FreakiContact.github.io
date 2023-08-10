@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat System - Connection</title>
+    <title>Chat Discord Theme</title>
     <link rel="stylesheet" href="main.css">
     <script src="main.js"></script>
 </head>
@@ -12,30 +12,54 @@
     <div class="discord-theme">
         <div class="app">
             <div class="app-header">
-                <div class="app-header-text">Chat</div>
+                <h1 class="app-header-text">Chat</h1>
             </div>
             <div class="app-content">
                 <div class="login-container" id="loginContainer">
                     <h2>Connection</h2>
                     <div class="input-container">
-                        <input type="text" id="pseudoInput" placeholder="Pseudo">
+                        <input type="text" id="pseudoInput" required>
                         <label class="input-label">Pseudo</label>
                     </div>
                     <div class="input-container">
-                        <input type="text" id="logoUrlInput" placeholder="Logo URL">
+                        <input type="text" id="logoUrlInput" required>
                         <label class="input-label">Logo URL</label>
                     </div>
                     <button onclick="startChat()">Continuer</button>
                 </div>
-                <div class="chat-container" id="chatContainer" style="display: none;">
-                    <div class="chat-box" id="chatBox"></div>
-                    <div class="message-input">
-                        <input type="text" id="messageInput" placeholder="Type your message">
-                        <button onclick="sendMessage()">Send</button>
+                <div class="chat-container" id="chatContainer">
+                    <div class="chat-box" id="chatBox">
+                        <!-- Messages du chat seront affichés ici -->
                     </div>
+                    <div class="message-input">
+                        <input type="text" id="messageInput" placeholder="Type your message here">
+                        <button id="sendMessageButton" onclick="sendMessage()">Send</button>
+                        <button id="emotButton" onclick="toggleEmotPanel()">Emot</button>
+                    </div>
+                    <div class="emot-panel" id="emotPanel">
+                        <img src="Emot/jellpog.png" alt=":jellpog:" onclick="insertEmot(':jellpog:')">
+                        <img src="Emot/hollow.png" alt=":hollow:" onclick="insertEmot(':hollow:')">
+                        <!-- Ajoutez les autres émoticônes ici -->
+                    </div>
+                    <div class="message-sent-animation" id="MessageSentAnimation">Message sent!</div>
                 </div>
             </div>
         </div>
     </div>
+    <div class="settings-menu" id="settingsMenu">
+        <div class="settings-menu-header">
+            <h3>Change Background</h3>
+            <button class="close-settings" onclick="closeSettingsMenu()">X</button>
+        </div>
+        <div class="background-list">
+            <img src="BackgroundList/Background1.png" alt="Background 1" onclick="changeBackground('BackgroundList/Background1.png')">
+            <img src="BackgroundList/Background2.png" alt="Background 2" onclick="changeBackground('BackgroundList/Background2.png')">
+            <img src="BackgroundList/Background3.png" alt="Background 3" onclick="changeBackground('BackgroundList/Background3.png')">
+            <!-- Ajoutez les autres arrière-plans ici -->
+        </div>
+    </div>
+    <button class="theme-button" onclick="toggleSettingsMenu()">
+        <img src="IconButton/ThemeButton.png" alt="Change Background">
+    </button>
 </body>
 </html>
