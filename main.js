@@ -42,10 +42,11 @@ function startChat() {
         addUserToList(pseudo, logoUrl);
         updateUsersList();
 
-        const userRef = database.ref("users/" + pseudo);
-        userRef.set({ logoUrl });
+        // Ajoutez ceci pour enlever l'utilisateur lorsqu'il quitte la page
+        window.addEventListener("beforeunload", removeUserOnUnload);
     }
 }
+
 
 function receiveMessage(username, content) {
     const chatBox = document.getElementById("chatBox");
@@ -245,3 +246,15 @@ document.addEventListener("DOMContentLoaded", () => {
         updateUserLogo(username, newLogoUrl);
     });
 });
+
+function removeUserOnUnload() {
+    if (pseudo !== "") {
+        const userIndex = users.findIndex(user => user.username === pseudo);
+        if (userIndex !== -1) {
+            users.splice(userIndex, 1);
+            updateUsersList();
+        }
+    }
+}
+
+window.addEventListener("beforeunload", removeUserOnUnload);
