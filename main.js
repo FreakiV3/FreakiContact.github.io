@@ -46,6 +46,9 @@ function startChat() {
 
         const userRef = database.ref("users/" + pseudo);
         userRef.set({ logoUrl });
+
+        // Appeler la fonction d'autoscroll
+        scrollToBottom();
     }
 }
 
@@ -66,6 +69,9 @@ function receiveMessage(username, content) {
 
     updateUserActivity(username);
     playMessageSound();
+
+    // Faire défiler vers le bas de la boîte de chat
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 function playMessageSound() {
@@ -296,5 +302,9 @@ function removeInactiveUsers() {
         users = users.filter(user => !inactiveUsers.includes(user));
         updateUsersList();
     }
+}
+function scrollToBottom() {
+    const chatBox = document.getElementById("chatBox");
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
 setInterval(removeInactiveUsers, 600000);
