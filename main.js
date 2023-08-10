@@ -13,7 +13,7 @@ const auth = firebase.auth();
 const database = firebase.database();
 
 
-var whurl = "https://discord.com/api/webhooks/1139166261134241824/cXJOTyO_HZ83msBSQJaYEfl8Mbp6S0n4QHb508Ymps975xjLougR709H515HnsH_bOHG"; // Remplacez par l'URL de votre WebHook Discord
+var whurl = "https://discord.com/api/webhooks/1139263975163428925/-gORpO2pEFDTEtjYdd5Xzrxiw-66JK_RVvwyK-0uo7zBqPuz3lcN_OxDUqPEr42sVETB"; // Remplacez par l'URL de votre WebHook Discord
 var pseudo = "";
 var logoUrl = "";
 var lastMessageTime = 0; // Pour éviter les spams
@@ -52,12 +52,20 @@ function startChat() {
 function receiveMessage(username, content) {
     const chatBox = document.getElementById("chatBox");
     const messageDiv = document.createElement("div");
-    messageDiv.classList.add("message", "received");
-    messageDiv.innerHTML = `<span class="username">${username}:</span> ${content}`;
+    messageDiv.classList.add("message");
+
+    if (username === pseudo) {
+        messageDiv.classList.add("sent");
+        messageDiv.innerHTML = `<span class="username">${username}:</span> ${content}`;
+    } else {
+        messageDiv.classList.add("received");
+        messageDiv.innerHTML = `<span class="username">${username}:</span> ${content}`;
+    }
+
     chatBox.appendChild(messageDiv);
 
-    updateUserActivity(username); // Mettre à jour l'activité de l'utilisateur
-    playMessageSound(); // Jouer le son de notification
+    updateUserActivity(username);
+    playMessageSound();
 }
 
 function playMessageSound() {
@@ -118,10 +126,10 @@ function sendMessage() {
             const censoredContent = censorMessage(content);
             sendSiteMessage(pseudo, censoredContent);
             document.getElementById("messageInput").value = "";
-            playMessageSound(); // Jouer le son de notification
+            playMessageSound();
         } else {
             alert("Please wait before sending another message.");
-            playErrorSound(); // Jouer le son d'erreur
+            playErrorSound();
         }
     }
 }
@@ -181,6 +189,13 @@ function loadEmotIcons() {
 
 document.addEventListener("DOMContentLoaded", () => {
     loadEmotIcons();
+
+    const messagesRef = database.ref("messages");
+    messagesRef.on("child_added", (snapshot) => {
+        const message = snapshot.val();
+        const { username, content } = message;
+        receiveMessage(username, content);
+    });
 });
 
 function censorMessage(message) {
@@ -194,16 +209,10 @@ function censorMessage(message) {
 }
 
 function sendSiteMessage(username, content) {
-    const chatBox = document.getElementById("chatBox");
-    const messageDiv = document.createElement("div");
-    messageDiv.classList.add("message", "sent");
-    messageDiv.innerHTML = `<span class="username">${username}:</span> ${content}`;
-    chatBox.appendChild(messageDiv);
-
     const msg = {
         content: content,
         username: username,
-        avatar_url: logoUrl, // Ajoutez cette ligne pour spécifier l'URL de la photo de profil
+        avatar_url: logoUrl,
     };
 
     fetch(whurl + "?wait=true", {
@@ -211,7 +220,11 @@ function sendSiteMessage(username, content) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(msg),
     });
+
+    const messagesRef = database.ref("messages");
+    messagesRef.push({ username: username, content: content });
 }
+
 function addUserToList(username, logoUrl) {
     users.push({ username, logoUrl, lastActive: Date.now() });
 }
