@@ -13,6 +13,10 @@ var bannedWords = [
     "Enculer", "Negro", "Negre"
 ];
 var emotPanelOpen = false; // Variable pour suivre l'état du panneau des émoticônes
+var users = []; // Liste des utilisateurs connectés
+
+var messageSound = new Audio("SoundPopup/message.mp3");
+var errorSound = new Audio("SoundPopup/error.mp3");
 
 function startChat() {
     pseudo = document.getElementById("pseudoInput").value;
@@ -21,6 +25,8 @@ function startChat() {
     if (pseudo.trim() !== "") {
         document.getElementById("loginContainer").style.display = "none";
         document.getElementById("chatContainer").style.display = "block";
+        addUserToList(pseudo, logoUrl);
+        updateUsersList();
     }
 }
 
@@ -30,42 +36,39 @@ function receiveMessage(username, content) {
     messageDiv.classList.add("message", "received");
     messageDiv.innerHTML = `<span class="username">${username}:</span> ${content}`;
     chatBox.appendChild(messageDiv);
+
+    playMessageSound(); // Jouer le son de notification
 }
 
-function sendSiteMessage(username, content) {
-    const msg = {
-        "content": content,
-        "username": pseudo,
-        "avatar_url": logoUrl
-    };
+function playMessageSound() {
+    messageSound.play();
+}
 
-    fetch(whurl + "?wait=true", {
-        "method": "POST",
-        "headers": {
-            "content-type": "application/json"
-        },
-        "body": JSON.stringify(msg)
+function playErrorSound() {
+    errorSound.play();
+}
+
+function addUserToList(username, logoUrl) {
+    users.push({ username, logoUrl });
+}
+
+function updateUserLogo(username, newLogoUrl) {
+    const user = users.find(user => user.username === username);
+    if (user) {
+        user.logoUrl = newLogoUrl;
+        updateUsersList();
+    }
+}
+
+function updateUsersList() {
+    const usersList = document.getElementById("usersList");
+    usersList.innerHTML = "";
+    users.forEach(user => {
+        const userDiv = document.createElement("div");
+        userDiv.classList.add("user");
+        userDiv.innerHTML = `<img src="${user.logoUrl}" alt="${user.username}">${user.username}`;
+        usersList.appendChild(userDiv);
     });
-
-    const chatBox = document.getElementById("chatBox");
-    const messageDiv = document.createElement("div");
-    messageDiv.classList.add("message", "sent");
-    messageDiv.innerHTML = `<span class="username">${pseudo}:</span> ${content}`;
-    chatBox.appendChild(messageDiv);
-}
-
-document.getElementById("messageInput").addEventListener("keyup", function(event) {
-    if (event.key === "Enter") {
-        sendMessage();
-    }
-});
-
-function censorMessage(message) {
-    for (let word of bannedWords) {
-        const regex = new RegExp(word, "gi");
-        message = message.replace(regex, "*censored*");
-    }
-    return message;
 }
 
 function sendMessage() {
@@ -78,8 +81,10 @@ function sendMessage() {
             const censoredContent = censorMessage(content);
             sendSiteMessage(pseudo, censoredContent);
             document.getElementById("messageInput").value = "";
+            playMessageSound(); // Jouer le son de notification
         } else {
             alert("Please wait before sending another message.");
+            playErrorSound(); // Jouer le son d'erreur
         }
     }
 }
@@ -140,3 +145,32 @@ function loadEmotIcons() {
 document.addEventListener("DOMContentLoaded", () => {
     loadEmotIcons();
 });
+
+function censorMessage(message) {
+    const words = message.split(" ");
+    for (let i = 0; i < words.length; i++) {
+        if (bannedWords.includes(words[i].toLowerCase())) {
+            words[i] = "*".repeat(words[i].length);
+        }
+    }
+    return words.join(" ");
+}
+
+function sendSiteMessage(username, content) {
+    const chatBox = document.getElementById("chatBox");
+    const messageDiv = document.createElement("div");
+    messageDiv.classList.add("message", "sent");
+    messageDiv.innerHTML = `<span class="username">${username}:</span> ${content}`;
+    chatBox.appendChild(messageDiv);
+
+    const msg = {
+        content: content,
+        username: username,
+    };
+
+    fetch(whurl + "?wait=true", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(msg),
+    });
+}
