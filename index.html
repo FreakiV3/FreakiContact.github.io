@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat System - Connection</title>
+    <link rel="stylesheet" href="main.css">
+    <script src="main.js"></script>
+</head>
+<body>
+    <div class="discord-theme">
+        <div class="app">
+            <div class="app-header">
+                <div class="app-header-text">Chat</div>
+            </div>
+            <div class="app-content">
+                <div class="login-container" id="loginContainer">
+                    <h2>Connection</h2>
+                    <div class="input-container">
+                        <input type="text" id="pseudoInput" placeholder="Pseudo">
+                        <label class="input-label">Pseudo</label>
+                    </div>
+                    <div class="input-container">
+                        <input type="text" id="logoUrlInput" placeholder="Logo URL">
+                        <label class="input-label">Logo URL</label>
+                    </div>
+                    <button onclick="startChat()">Continuer</button>
+                </div>
+                <div class="chat-container" id="chatContainer" style="display: none;">
+                    <div class="chat-box" id="chatBox"></div>
+                    <div class="message-input">
+                        <input type="text" id="messageInput" placeholder="Type your message">
+                        <button onclick="sendMessage()">Send</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
