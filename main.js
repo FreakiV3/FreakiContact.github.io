@@ -25,6 +25,7 @@ var bannedWords = [
     "gueule", "Casse-couilles", "Abruti", "Con", "conne", "Tocard", "Pute", "Salope",
     "Enculer", "Negro", "Negre"
 ];
+
 var emotPanelOpen = false; // Variable pour suivre l'état du panneau des émoticônes
 var users = []; // Liste des utilisateurs connectés
 
@@ -40,6 +41,9 @@ function startChat() {
         document.getElementById("chatContainer").style.display = "block";
         addUserToList(pseudo, logoUrl);
         updateUsersList();
+
+        const userRef = database.ref("users/" + pseudo);
+        userRef.set({ logoUrl });
     }
 }
 
@@ -216,38 +220,28 @@ function updateUserLogo(username, newLogoUrl) {
         updateUsersList();
     }
 }
-
-function startChat() {
-    pseudo = document.getElementById("pseudoInput").value;
-    logoUrl = document.getElementById("logoUrlInput").value;
-
-    if (pseudo.trim() !== "") {
-        database.ref("users/" + pseudo).set({
-            logoUrl: logoUrl,
-            online: true
-        });
-
-        document.getElementById("loginContainer").style.display = "none";
-        document.getElementById("chatContainer").style.display = "block";
-
-        database.ref("users").on("value", (snapshot) => {
-            const usersData = snapshot.val();
-            users = Object.keys(usersData).map(username => {
-                return {
-                    username: username,
-                    logoUrl: usersData[username].logoUrl,
-                    online: usersData[username].online
-                };
-            });
+document.addEventListener("DOMContentLoaded", () => {
+    loadEmotIcons();
+    
+    const usersRef = database.ref("users");
+    usersRef.on("child_added", (snapshot) => {
+        const username = snapshot.key;
+        const logoUrl = snapshot.val().logoUrl;
+        if (!users.some(user => user.username === username)) {
+            addUserToList(username, logoUrl);
             updateUsersList();
-        });
+        }
+    });
 
-        window.addEventListener("beforeunload", () => {
-            if (pseudo !== "") {
-                database.ref("users/" + pseudo).update({
-                    online: false
-                });
-            }
-        });
-    }
-}
+    usersRef.on("child_removed", (snapshot) => {
+        const username = snapshot.key;
+        users = users.filter(user => user.username !== username);
+        updateUsersList();
+    });
+
+    usersRef.on("child_changed", (snapshot) => {
+        const username = snapshot.key;
+        const newLogoUrl = snapshot.val().logoUrl;
+        updateUserLogo(username, newLogoUrl);
+    });
+});

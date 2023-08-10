@@ -345,3 +345,42 @@ body {
 .user img, .user span {
     color: white;
 }
+.users-container {
+    background-color: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    padding: 10px;
+    width: 250px; /* Ajustez la largeur selon vos préférences */
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    max-height: calc(100vh - 40px); /* Ajustez en fonction de vos besoins */
+    box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+}
+
+.users-list {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.users-list .user {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.users-list .user img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 10px;
+}
+
+.users-list .user span {
+    color: white;
+    font-weight: bold;
+}
