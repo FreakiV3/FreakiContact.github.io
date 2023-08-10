@@ -407,3 +407,7 @@ body {
 .logout-button:hover {
     background-color: #e63b32;
 }
+.emot-icon {
+    width: 30px; /* Largeur souhaitée */
+    height: 30px; /* Hauteur souhaitée */
+}

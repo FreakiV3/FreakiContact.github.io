@@ -35,26 +35,31 @@ var messageSound = new Audio("SoundPopup/message.mp3");
 var errorSound = new Audio("SoundPopup/error.mp3");
 
 function startChat() {
-    pseudo = document.getElementById("pseudoInput").value;
-    logoUrl = document.getElementById("logoUrlInput").value;
+    const inputPseudo = document.getElementById("pseudoInput").value.trim();
+    const logoUrl = document.getElementById("logoUrlInput").value;
 
-    if (pseudo.trim() !== "") {
-        // Vérifier si le pseudonyme contient des mots interdits
-        if (containsBannedWords(pseudo)) {
-            alert("Le pseudonyme contient des mots interdits.");
-            return;
-        }
-
-        document.getElementById("loginContainer").style.display = "none";
-        document.getElementById("chatContainer").style.display = "block";
-        addUserToList(pseudo, logoUrl);
-        updateUsersList();
-
-        const userRef = database.ref("users/" + pseudo);
-        userRef.set({ logoUrl });
-
-        scrollToBottom();
+    if (inputPseudo === "") {
+        return;
     }
+
+    // Vérification si le pseudonyme existe déjà
+    const usernameExists = users.some(user => user.username.toLowerCase() === inputPseudo.toLowerCase());
+    if (usernameExists) {
+        alert("Ce pseudonyme est déjà utilisé. Veuillez en choisir un autre.");
+        return;
+    }
+
+    pseudo = inputPseudo;
+
+    document.getElementById("loginContainer").style.display = "none";
+    document.getElementById("chatContainer").style.display = "block";
+    addUserToList(pseudo, logoUrl);
+    updateUsersList();
+
+    const userRef = database.ref("users/" + pseudo);
+    userRef.set({ logoUrl });
+
+    scrollToBottom();
 }
 
 function receiveMessage(username, content) {
@@ -64,10 +69,10 @@ function receiveMessage(username, content) {
 
     if (username === pseudo) {
         messageDiv.classList.add("sent");
-        messageDiv.innerHTML = `<span class="username">${username}:</span> ${content}`;
+        messageDiv.innerHTML = `<span class="username">${username}:</span> ${replaceEmotCodesWithImages(content)}`;
     } else {
         messageDiv.classList.add("received");
-        messageDiv.innerHTML = `<span class="username">${username}:</span> ${content}`;
+        messageDiv.innerHTML = `<span class="username">${username}:</span> ${replaceEmotCodesWithImages(content)}`;
     }
 
     chatBox.appendChild(messageDiv);
@@ -233,7 +238,7 @@ function sendSiteMessage(username, content) {
     });
 
     const messagesRef = database.ref("messages");
-    messagesRef.push({ username: username, content: content });
+    messagesRef.push({ username: username, content: content, timestamp: Date.now() }); // Ajoutez un horodatage au message
 }
 
 function addUserToList(username, logoUrl) {
@@ -321,4 +326,41 @@ function containsBannedWords(text) {
     }
     return false;
 }
+function removeOldMessages() {
+    const messagesRef = database.ref("messages");
+
+    messagesRef.once("value", snapshot => {
+        snapshot.forEach(messageSnapshot => {
+            const message = messageSnapshot.val();
+            const messageTimestamp = message.timestamp;
+            const currentTime = Date.now();
+            const elapsedTime = currentTime - messageTimestamp;
+
+            // Supprimer le message si le temps écoulé est supérieur à une heure (en millisecondes)
+            if (elapsedTime > 3600000) {
+                messageSnapshot.ref.remove();
+            }
+        });
+    });
+}
+function replaceEmotCodesWithImages(content) {
+    const emotList = [
+        "jellpog", "hollow", "flushedpoint", "chocolasmug",
+        "blushpensiveconcern", "aqualewd", "PinguHM", "PP_PeppaBlocked",
+        "PP_GeorgeBall", "PP_GeorgeDragon", "Freaki", "2487pleadingseal",
+        "1013moneyz"
+    ];
+
+    let replacedContent = content;
+    emotList.forEach(emot => {
+        const emotCode = `:${emot}:`;
+        const emotImage = `<img src="Emot/${emot}.png" alt="${emot}" class="emot-icon">`;
+        replacedContent = replacedContent.replace(new RegExp(emotCode, "g"), emotImage);
+    });
+
+    return replacedContent;
+}
+
+// Appeler la fonction pour supprimer les anciens messages toutes les heures
+setInterval(removeOldMessages, 3600000); // Appeler toutes les heures (3600000 millisecondes)
 setInterval(removeInactiveUsers, 600000);
