@@ -25,7 +25,7 @@ var bannedWords = [
     "Jean-Foutre", "Malappris", "Malotru", "Maraud", "Maroufle", "Mufle", "Olibrius",
     "Ostrogoth", "Paltoquet", "Pignouf", "Pisse-Froid", "Pourceau", "Ribaud", "Sagouin",
     "gueule", "Casse-couilles", "Abruti", "Con", "conne", "Tocard", "Pute", "Salope",
-    "Enculer", "Negro", "Negre"
+    "Enculer", "Connard", "Connar", "connard", "Negro", "Negre"
 ];
 
 var emotPanelOpen = false; // Variable pour suivre l'état du panneau des émoticônes
@@ -39,6 +39,12 @@ function startChat() {
     logoUrl = document.getElementById("logoUrlInput").value;
 
     if (pseudo.trim() !== "") {
+        // Vérifier si le pseudonyme contient des mots interdits
+        if (containsBannedWords(pseudo)) {
+            alert("Le pseudonyme contient des mots interdits.");
+            return;
+        }
+
         document.getElementById("loginContainer").style.display = "none";
         document.getElementById("chatContainer").style.display = "block";
         addUserToList(pseudo, logoUrl);
@@ -47,7 +53,6 @@ function startChat() {
         const userRef = database.ref("users/" + pseudo);
         userRef.set({ logoUrl });
 
-        // Appeler la fonction d'autoscroll
         scrollToBottom();
     }
 }
@@ -306,5 +311,14 @@ function removeInactiveUsers() {
 function scrollToBottom() {
     const chatBox = document.getElementById("chatBox");
     chatBox.scrollTop = chatBox.scrollHeight;
+}
+function containsBannedWords(text) {
+    const words = text.split(" ");
+    for (let i = 0; i < words.length; i++) {
+        if (bannedWords.includes(words[i].toLowerCase())) {
+            return true;
+        }
+    }
+    return false;
 }
 setInterval(removeInactiveUsers, 600000);
