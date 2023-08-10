@@ -4,18 +4,20 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat Discord Theme</title>
+    <title>Chat</title>
     <link rel="stylesheet" href="main.css">
-    <script src="main.js"></script>
 </head>
 <body>
     <div class="discord-theme">
         <div class="app">
             <div class="app-header">
                 <h1 class="app-header-text">Chat</h1>
+                <button class="theme-button" onclick="toggleSettingsMenu()">
+                    <img src="IconButton/ThemeButton.png" alt="Settings">
+                </button>
             </div>
             <div class="app-content">
-                <div class="login-container" id="loginContainer">
+                <div id="loginContainer" class="login-container">
                     <h2>Connection</h2>
                     <div class="input-container">
                         <input type="text" id="pseudoInput" required>
@@ -27,39 +29,31 @@
                     </div>
                     <button onclick="startChat()">Continuer</button>
                 </div>
-                <div class="chat-container" id="chatContainer">
-                    <div class="chat-box" id="chatBox">
-                        <!-- Messages du chat seront affichés ici -->
-                    </div>
+                <div id="chatContainer" class="chat-container">
+                    <div id="chatBox" class="chat-box"></div>
                     <div class="message-input">
-                        <input type="text" id="messageInput" placeholder="Type your message here">
-                        <button id="sendMessageButton" onclick="sendMessage()">Send</button>
-                        <button id="emotButton" onclick="toggleEmotPanel()">Emot</button>
+                        <input type="text" id="messageInput" placeholder="Type a message...">
+                        <button onclick="sendMessage()">Send</button>
+                        <button class="theme-button" onclick="toggleEmotPanel()">
+                            <img src="IconButton/EmotButton.png" alt="Emot">
+                        </button>
                     </div>
-                    <div class="emot-panel" id="emotPanel">
-                        <img src="Emot/jellpog.png" alt=":jellpog:" onclick="insertEmot(':jellpog:')">
-                        <img src="Emot/hollow.png" alt=":hollow:" onclick="insertEmot(':hollow:')">
-                        <!-- Ajoutez les autres émoticônes ici -->
-                    </div>
-                    <div class="message-sent-animation" id="MessageSentAnimation">Message sent!</div>
                 </div>
             </div>
         </div>
     </div>
-    <div class="settings-menu" id="settingsMenu">
+    <div id="emotPanel" class="emot-panel"></div>
+    <div id="settingsMenu" class="settings-menu">
         <div class="settings-menu-header">
-            <h3>Change Background</h3>
-            <button class="close-settings" onclick="closeSettingsMenu()">X</button>
+            <h2>Change Background</h2>
+            <button class="close-settings" onclick="closeSettingsMenu()">Close</button>
         </div>
         <div class="background-list">
             <img src="BackgroundList/Background1.png" alt="Background 1" onclick="changeBackground('BackgroundList/Background1.png')">
             <img src="BackgroundList/Background2.png" alt="Background 2" onclick="changeBackground('BackgroundList/Background2.png')">
             <img src="BackgroundList/Background3.png" alt="Background 3" onclick="changeBackground('BackgroundList/Background3.png')">
-            <!-- Ajoutez les autres arrière-plans ici -->
         </div>
     </div>
-    <button class="theme-button" onclick="toggleSettingsMenu()">
-        <img src="IconButton/ThemeButton.png" alt="Change Background">
-    </button>
+    <script src="main.js"></script>
 </body>
 </html>

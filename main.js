@@ -116,3 +116,27 @@ function changeBackground(backgroundUrl) {
     document.body.style.backgroundImage = `url(${backgroundUrl})`;
     closeSettingsMenu();
 }
+
+function loadEmotIcons() {
+    const emotPanel = document.getElementById("emotPanel");
+    emotPanel.innerHTML = "";
+
+    const emotList = [
+        "jellpog", "hollow", "flushedpoint", "chocolasmug",
+        "blushpensiveconcern", "aqualewd", "PinguHM", "PP_PeppaBlocked",
+        "PP_GeorgeBall", "PP_GeorgeDragon", "Freaki", "2487pleadingseal",
+        "1013moneyz"
+    ];
+
+    emotList.forEach(emot => {
+        const img = document.createElement("img");
+        img.src = `Emot/${emot}.png`;
+        img.alt = emot;
+        img.addEventListener("click", () => insertEmot(`:${emot}:`));
+        emotPanel.appendChild(img);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    loadEmotIcons();
+});
