@@ -34,7 +34,12 @@ var users = []; // Liste des utilisateurs connectés
 var messageSound = new Audio("SoundPopup/message.mp3");
 var errorSound = new Audio("SoundPopup/error.mp3");
 
+let afkAlertActive = false;
+var afkCounter = 0;
+let afkAlertTimeout;
+
 function startChat() {
+	console.log("Starting chat...");
     const inputPseudo = document.getElementById("pseudoInput").value.trim();
     const logoUrl = document.getElementById("logoUrlInput").value;
 
@@ -162,8 +167,10 @@ function receiveMessage(username, content) {
 	updateChatScroll();
 	removeExcessMessages();
 }
+
 function sendMessage() {
     const content = document.getElementById("messageInput").value;
+	afkCounter = 2;
     
     // Vérifier si le message est une commande /warn
     if (content.startsWith("/warn")) {
@@ -179,8 +186,10 @@ function sendMessage() {
             }
         }
     }
-
+	
     if (content.trim() !== "") {
+        afkCounter = 0; // Réinitialiser le compteur AFK
+        
         const currentTime = new Date().getTime();
         if (currentTime - lastMessageTime >= spamInterval) {
             lastMessageTime = currentTime;
@@ -194,8 +203,11 @@ function sendMessage() {
             playErrorSound();
         }
     }
+    // Réinitialiser l'alerte anti-AFK après avoir envoyé un message
+	handleUserActivity();
+    closeAfkAlert();
+	setInterval(handleUserActivity, 60000);
 }
-
 
 
 function toggleEmotPanel() {
@@ -276,7 +288,7 @@ function sendSiteMessage(username, content) {
     const msg = {
         content: content,
         username: username,
-        avatar_url: logoUrl,
+        avatar_url: logoUrl, // Assurez-vous que logoUrl pointe vers un lien direct vers l'image
     };
 
     fetch(whurl + "?wait=true", {
@@ -285,8 +297,10 @@ function sendSiteMessage(username, content) {
         body: JSON.stringify(msg),
     });
 
-    const messagesRef = database.ref("messages");
-    messagesRef.push({ username: username, content: content, timestamp: Date.now() }); // Ajoutez un horodatage au message
+    if (username !== "System") { // Exclure les messages système
+        const messagesRef = database.ref("messages");
+        messagesRef.push({ username: username, content: content, timestamp: Date.now() }); // Ajoutez un horodatage au message
+    }
 }
 
 function addUserToList(username, logoUrl) {
@@ -349,18 +363,10 @@ function updateUserActivity(username) {
     const user = users.find(user => user.username === username);
     if (user) {
         user.lastActive = Date.now();
+        handleUserActivity();
     }
 }
 
-function removeInactiveUsers() {
-    const currentTime = Date.now();
-    const inactiveUsers = users.filter(user => (currentTime - user.lastActive) > 600000); // 600000 ms = 10 minutes
-
-    if (inactiveUsers.length > 0) {
-        users = users.filter(user => !inactiveUsers.includes(user));
-        updateUsersList();
-    }
-}
 function scrollToBottom() {
     const chatBox = document.getElementById("chatBox");
     chatBox.scrollTop = chatBox.scrollHeight;
@@ -374,6 +380,7 @@ function containsBannedWords(text) {
     }
     return false;
 }
+
 function removeOldMessages() {
     const messagesRef = database.ref("messages");
 
@@ -391,6 +398,7 @@ function removeOldMessages() {
         });
     });
 }
+setInterval(removeOldMessages, 3600000);
 function replaceEmotCodesWithImages(content) {
     const emotList = [
         "jellpog", "hollow", "flushedpoint", "chocolasmug",
@@ -433,6 +441,90 @@ function warnUser(username) {
     });
 }
 
-// Appeler la fonction pour supprimer les anciens messages toutes les heures
-setInterval(removeOldMessages, 3600000); // Appeler toutes les heures (3600000 millisecondes)
-setInterval(removeInactiveUsers, 600000);
+// Variables globales
+
+
+// Ouvrir l'alert anti-AFK
+function openAfkAlert() {
+    const afkAlert = document.getElementById("afkAlert");
+    afkAlert.style.display = "block";
+
+    // Gérer la réponse de l'utilisateur après 1 minute
+    afkAlertTimeout = setTimeout(() => {
+        closeAfkAlert();
+        removeCurrentUser();
+    }, 60000); // 60000 ms = 1 minute
+}
+
+// Fermer l'alert anti-AFK
+function closeAfkAlert() {
+    const afkAlert = document.getElementById("afkAlert");
+    afkAlert.style.display = "none";
+
+    // Réinitialiser le délai d'alerte anti-AFK
+    clearTimeout(afkAlertTimeout);
+}
+
+
+// Gérer la réponse "Oui"
+document.getElementById("afkYesButton").addEventListener("click", () => {
+    handleAfkResponse("yes");
+});
+
+document.getElementById("afkNoButton").addEventListener("click", () => {
+    handleAfkResponse("no");
+});
+
+// Ouvrir l'alert anti-AFK lorsqu'un message est envoyé
+function handleUserActivity() {
+    const currentTime = Date.now();
+    const lastMessageTimestamp = lastMessageTime;
+    const timeSinceLastMessage = currentTime - lastMessageTimestamp;
+
+    if (timeSinceLastMessage >= 60000 && afkCounter === 0) { // Vérification toutes les 60 secondes
+        openAfkAlert();
+        afkAlertActive = true;
+        sendSiteMessage("System", "AFK alert opened due to inactivity.");
+    } else if (afkCounter > 0) {
+        afkCounter--;
+    }
+}
+
+function handleAfkResponse(response) {
+	clearTimeout(afkAlertTimeout);
+    if (response === "yes") {
+        closeAfkAlert();
+        removeCurrentUser();
+    } else if (response === "no") {
+		afkCounter = 0;
+        closeAfkAlert();
+    }
+}
+
+function removeCurrentUser() {
+	clearTimeout(afkAlertTimeout);
+    const userRef = database.ref("users/" + pseudo);
+    userRef.remove()
+        .then(() => {
+            firebase.auth().signOut()
+                .then(() => {
+                    // Déconnexion réussie
+                    const userIndex = users.findIndex(user => user.username === pseudo);
+                    if (userIndex !== -1) {
+                        users.splice(userIndex, 1);
+                        updateUsersList();
+                    }
+                    // Affiche l'écran de connexion à nouveau
+                    document.getElementById("loginContainer").style.display = "block";
+                    document.getElementById("chatContainer").style.display = "none";
+                })
+                .catch(error => {
+                    console.error("Erreur lors de la déconnexion :", error);
+                });
+        })
+        .catch(error => {
+            console.error("Erreur lors de la suppression de l'utilisateur :", error);
+        });
+}
+
+// Appeler cette fonction pour mettre à jour l'heure de la dernière activité utilisateur
